@@ -41,18 +41,20 @@ const App = defineComponent({
 
   computed: {
     filteredEmails() {
-      if (!this.input) return [];
+      if (!this.input) return {};
 
       // Emails are case insensitive.
       const searchValue = this.input.toLowerCase();
 
-      return this.emails.filter((email) => {
-        return email.toLowerCase().includes(searchValue);
-      });
+      return this.emails.reduce((accumulator, email) => {
+        if (email.toLowerCase().includes(searchValue)) {
+          accumulator[email] = true;
+        }
+        return accumulator;
+      }, {});
     },
   },
 });
 
 const app = createApp(App);
 app.mount('#app');
-
