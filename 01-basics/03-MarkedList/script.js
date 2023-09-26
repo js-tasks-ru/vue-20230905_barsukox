@@ -1,4 +1,4 @@
-// import { createApp } from './vendor/vue.esm-browser.js';
+import { createApp, defineComponent } from './vendor/vue.esm-browser.js';
 
 // From https://jsonplaceholder.typicode.com/comments
 const emails = [
@@ -29,4 +29,32 @@ const emails = [
   'Isaias_Kuhic@jarrett.net',
 ];
 
-// Требуется создать Vue приложение
+const App = defineComponent({
+  name: 'MarkedList',
+
+  data() {
+    return {
+      input: '',
+      emails: emails,
+    };
+  },
+
+  computed: {
+    filteredEmails() {
+      if (!this.input) return {};
+
+      // Emails are case insensitive.
+      const searchValue = this.input.toLowerCase();
+
+      return this.emails.reduce((accumulator, email) => {
+        if (email.toLowerCase().includes(searchValue)) {
+          accumulator[email] = true;
+        }
+        return accumulator;
+      }, {});
+    },
+  },
+});
+
+const app = createApp(App);
+app.mount('#app');
