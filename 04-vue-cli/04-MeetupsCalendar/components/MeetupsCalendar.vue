@@ -6,7 +6,7 @@
                 type="button"
                 aria-label="Previous month"
                 @click="previousMonth"></button>
-        <div class="calendar-view__date">Декабрь 2022 г.</div>
+        <div class="calendar-view__date">{{ pageDate }}</div>
         <button class="calendar-view__control-right"
                 type="button"
                 aria-label="Next month"
@@ -31,8 +31,6 @@
 </template>
 
 <script>
-import { tr } from 'date-fns/locale';
-
 export default {
   name: 'MeetupsCalendar',
 
@@ -49,11 +47,16 @@ export default {
         return value >= 0 && value <= 6;
       },
     },
+
+    initialDate: {
+      type: Date,
+      default: () => new Date(),
+    },
   },
 
   data() {
     return {
-      selectedDate: new Date(),
+      selectedDate: new Date(this.initialDate.getTime()),
     }
   },
 
@@ -78,6 +81,13 @@ export default {
 
     selectedMonth() {
       return this.selectedDate.getMonth();
+    },
+
+    pageDate() {
+      return this.selectedDate.toLocaleDateString(navigator.language, {
+        month: 'long',
+        year: 'numeric',
+      });
     },
 
     previousMonthDates() {
@@ -110,6 +120,7 @@ export default {
       // Start of the month.
       const tmpDate = new Date(this.selectedYear, this.selectedMonth, 1);
 
+      // Until the end of the month.
       while (tmpDate.getMonth() === this.selectedMonth) {
         dates.push({
           active: true,
@@ -168,24 +179,19 @@ export default {
 
         if (meetup.date >= dayStart && meetup.date < dayEnd) {
           day.meetups.push(meetup);
+          // We can have more meetups on the same day.
           meetupIdx++;
         } else if (meetup.date >= dayEnd) {
+          // The current meetup is a future meetup.
           dayIdx++;
         } else {
+          // The current meetup is a past meetup.
           meetupIdx++;
         }
       }
 
       return pageDays;
     },
-
-    // startDate() {
-    //   const startDate = new Date(this.selectedDate.getTime());
-    //   startDate.setDate(startDate.getDay() - this.weekStartDay);
-    //   return startDate;
-    // },
-
-
   },
 };
 </script>
