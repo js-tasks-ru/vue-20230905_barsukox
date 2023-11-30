@@ -1,21 +1,42 @@
 <template>
-  <div class="dropdown dropdown_opened">
-    <button type="button" class="dropdown__toggle dropdown__toggle_icon">
-      <UiIcon icon="tv" class="dropdown__icon" />
-      <span>Title</span>
+  <div class="dropdown"
+       :class="{ 'dropdown_opened': isOpened }">
+    <button type="button"
+            class="dropdown__toggle"
+            :class="{ 'dropdown__toggle_icon': hasIcon }"
+            @click="toggleDropdown">
+      <UiIcon v-if="selectedOption?.icon"
+              :icon="selectedOption.icon"
+              class="dropdown__icon" />
+      <span>{{ selectedOption?.text || title }}</span>
     </button>
 
-    <div class="dropdown__menu" role="listbox">
-      <button class="dropdown__item dropdown__item_icon" role="option" type="button">
-        <UiIcon icon="tv" class="dropdown__icon" />
-        Option 1
-      </button>
-      <button class="dropdown__item dropdown__item_icon" role="option" type="button">
-        <UiIcon icon="tv" class="dropdown__icon" />
-        Option 2
+    <div v-show="isOpened"
+         class="dropdown__menu"
+         role="listbox">
+      <button v-for="option in options"
+              :key="option.value"
+              class="dropdown__item"
+              :class="{ 'dropdown__item_icon': hasIcon }"
+              role="option"
+              type="button"
+              @click="selectOption(option.value)">
+        <UiIcon v-if="option.icon"
+                :icon="option.icon"
+                class="dropdown__icon" />
+        {{ option.text }}
       </button>
     </div>
   </div>
+
+  <select v-show="false"  :name="title" :value="modelValue" @change="emitValue($event.target.value)">
+    <!--  Правильно ли я понимаю, что `selected` атрибут здесь не нужно указывать? -->
+    <option v-for="option in options"
+            :key="option.value"
+            :value="option.value">
+      {{ option.text }}
+    </option>
+  </select>
 </template>
 
 <script>
@@ -23,6 +44,70 @@ import UiIcon from './UiIcon.vue';
 
 export default {
   name: 'UiDropdown',
+
+  emits: ['update:modelValue'],
+
+  props: {
+    options: {
+      type: Array,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    modelValue: {
+      type: String,
+    },
+  },
+
+  data() {
+    return {
+      isOpened: false,
+    }
+  },
+
+  methods: {
+    toggleDropdown() {
+      this.isOpened = !this.isOpened;
+    },
+
+    selectOption(newValue) {
+      this.emitValue(newValue);
+      this.isOpened = false;
+    },
+
+    emitValue(newValue) {
+      this.$emit('update:modelValue', newValue);
+    },
+  },
+
+  computed: {
+    hasIcon() {
+      return this.options.some((option) => {
+        return typeof option.icon !== 'undefined';
+      });
+    },
+
+    selectedOption() {
+      if (typeof this.modelValue === 'undefined') return null;
+
+      return this.options.find((option) => {
+        return option.value === this.modelValue;
+      });
+    },
+  },
+
+  watch: {
+    options: {
+      handler(newOptions) {
+        if (!newOptions.includes(this.modelValue)) {
+          this.emitValue('');
+        }
+      },
+      deep: true,
+    },
+  },
 
   components: { UiIcon },
 };
